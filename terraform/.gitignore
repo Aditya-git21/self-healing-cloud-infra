@@ -1,11 +1,14 @@
 # Terraform
 .terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
 *.tfvars
 
 # Lambda build artifacts
-lambda.zip
+*.zip
+
+# Local response / test output
+response.json
 
 # OS files
 .DS_Store
