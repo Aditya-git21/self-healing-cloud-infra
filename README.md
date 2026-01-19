@@ -50,19 +50,19 @@ Lambda acts as a **secondary remediation layer**, ensuring recovery even if nati
               ▼
     ┌──────────────────────────┐
     │ Auto Scaling Group (ASG) │
-    │   EC2 Instances         │
-    └─────────┬───────────────┘
+    │   EC2 Instances          │
+    └─────────┬───────────────-┘
               │
               ▼
     ┌──────────────────────────┐
     │ CloudWatch Metrics       │
     │ & Alarms                 │
-    └─────────┬───────────────┘
+    └─────────┬───────────────-┘
               │ Alarm Trigger
               ▼
     ┌──────────────────────────┐
     │ EventBridge Rule         │
-    └─────────┬───────────────┘
+    └─────────┬───────────────-┘
               │
               ▼
     ┌──────────────────────────┐
