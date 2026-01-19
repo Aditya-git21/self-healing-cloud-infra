@@ -1,81 +1,189 @@
-# Self-Healing Cloud Infrastructure on AWS (Terraform)
+# 🔁 Self-Healing Cloud Infrastructure on AWS (Terraform)
 
-## Overview
-This project implements a self-healing cloud infrastructure on AWS using Terraform. The system continuously monitors infrastructure health and automatically restores service availability when failures occur, without requiring any manual intervention. The design follows real-world cloud architecture practices where resilience and automation are critical.
+## 📌 Overview
 
-## Problem Statement
-In traditional cloud environments, failures such as EC2 instance crashes or capacity reduction can lead to service disruption. Manual monitoring and recovery increase operational effort and delay restoration, potentially causing SLA violations and poor user experience.
+This project implements a **self-healing cloud infrastructure on AWS** using **Terraform (Infrastructure as Code)**.
 
-## Solution Approach
-This project solves the problem by implementing an automated, event-driven self-healing mechanism. CloudWatch monitors the infrastructure and detects failures. When a failure condition is met, an EventBridge rule triggers a Lambda function that validates the system state and restores the desired capacity of the Auto Scaling Group if required. Native AWS Auto Scaling handles rapid recovery, while Lambda acts as a secondary remediation layer.
+The system continuously monitors infrastructure health and **automatically restores service availability** when failures occur — **without any manual intervention**.  
+The design reflects **real-world cloud architecture practices** where resilience, automation, and fault tolerance are critical.
 
-## Architecture Components
-The solution is built using the following AWS services:
-- Amazon EC2
-- Auto Scaling Group (ASG)
-- Application Load Balancer (ALB)
-- Amazon CloudWatch Metrics and Alarms
-- Amazon EventBridge
-- AWS Lambda (Python)
-- AWS IAM
-- Terraform (Infrastructure as Code)
+---
 
-## Self-Healing Workflow
-1. An EC2 instance failure or capacity reduction occurs.
-2. CloudWatch metrics detect an unhealthy state.
-3. A CloudWatch alarm transitions to the ALARM state.
-4. EventBridge captures the alarm event.
-5. EventBridge triggers a Lambda function.
-6. Lambda checks the Auto Scaling Group desired capacity against in-service instances.
-7. If a mismatch is detected, the Auto Scaling Group capacity is restored automatically.
+## ❓ Problem Statement
 
-## Key Features
+In traditional cloud environments, failures such as **EC2 instance crashes**, **capacity reduction**, or **unhealthy targets** can cause service disruption.
+
+Manual monitoring and recovery:
+- Increase operational effort
+- Delay service restoration
+- Risk SLA violations
+- Lead to poor user experience
+
+---
+
+## 💡 Solution Approach
+
+This project implements an **event-driven self-healing mechanism** using native AWS services.
+
+- **CloudWatch** continuously monitors infrastructure health
+- **CloudWatch Alarms** detect failure conditions
+- **EventBridge** captures alarm state changes
+- **AWS Lambda** validates system state and remediates failures
+- **Auto Scaling Group (ASG)** restores capacity automatically
+
+Lambda acts as a **secondary remediation layer**, ensuring recovery even if native mechanisms fail.
+
+---
+
+## 🧱 Architecture
+
+    ┌──────────────┐
+    │   Users      │
+    └──────┬───────┘
+           │
+           ▼
+    ┌────────────────────┐
+    │ Application Load   │
+    │ Balancer (ALB)     │
+    └─────────┬──────────┘
+              │
+              ▼
+    ┌──────────────────────────┐
+    │ Auto Scaling Group (ASG) │
+    │   EC2 Instances         │
+    └─────────┬───────────────┘
+              │
+              ▼
+    ┌──────────────────────────┐
+    │ CloudWatch Metrics       │
+    │ & Alarms                 │
+    └─────────┬───────────────┘
+              │ Alarm Trigger
+              ▼
+    ┌──────────────────────────┐
+    │ EventBridge Rule         │
+    └─────────┬───────────────┘
+              │
+              ▼
+    ┌──────────────────────────┐
+    │ AWS Lambda (heal.py)     │
+    │ - Validate ASG capacity  │
+    │ - Restore desired state  │
+    └──────────────────────────┘
+
+---
+
+## 🔄 Self-Healing Workflow
+
+1. An EC2 instance failure or capacity reduction occurs
+2. CloudWatch metrics detect an unhealthy state
+3. A CloudWatch alarm transitions to **ALARM**
+4. EventBridge captures the alarm event
+5. EventBridge triggers the Lambda function
+6. Lambda compares desired vs in-service ASG capacity
+7. If mismatch exists, ASG capacity is restored automatically
+
+---
+
+## ⭐ Key Features
+
 - Fully automated failure detection and recovery
 - Event-driven remediation using Lambda
 - Idempotent and safe healing logic
 - Zero manual intervention
-- Infrastructure managed entirely using Terraform
+- Infrastructure fully managed using Terraform
 - Observable execution using CloudWatch Logs
+- Production-style layered resilience
 
-## Repository Structure
-self-healing-cloud-infra/
-├── terraform/
-│   ├── provider.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   ├── network.tf
-│   ├── asg.tf
-│   ├── cloudwatch.tf
-│   ├── eventbridge.tf
-│   ├── lambda.tf
-│   ├── lambda_iam.tf
-│   ├── ec2_iam.tf
-│   └── security_group.tf
-├── lambda/
-│   └── heal.py
-├── README.md
-└── .gitignore
+---
 
-## Deployment Instructions
-Prerequisites include an AWS account, AWS CLI configured with valid credentials, and Terraform version 1.5 or above installed on the system. To deploy the infrastructure, navigate to the terraform directory, initialize Terraform, and apply the configuration.
+## 📁 Repository Structure
 
-terraform init  
-terraform apply  
+    self-healing-cloud-infra/
+    ├── terraform/
+    │   ├── provider.tf
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   ├── network.tf
+    │   ├── asg.tf
+    │   ├── cloudwatch.tf
+    │   ├── eventbridge.tf
+    │   ├── lambda.tf
+    │   ├── lambda_iam.tf
+    │   ├── ec2_iam.tf
+    │   └── security_group.tf
+    ├── lambda/
+    │   └── heal.py
+    ├── README.md
+    └── .gitignore
 
-Confirm the resource creation when prompted.
+---
 
-## Testing the Self-Healing Mechanism
-To test the self-healing behavior, manually terminate an EC2 instance that belongs to the Auto Scaling Group. The system will automatically evaluate the infrastructure state and restore capacity if required. Lambda execution logs can be viewed in Amazon CloudWatch under the log group /aws/lambda/self-healing-handler.
+## 🚀 Deployment Instructions
 
-## Design Considerations
-Native Auto Scaling Group recovery handles fast instance replacement. The Lambda-based remediation acts as a backup safety mechanism and executes only when a capacity mismatch persists beyond alarm thresholds. This behavior reflects real production systems where multiple layers of resilience coexist.
+### Prerequisites
+- AWS account
+- AWS CLI configured with valid credentials
+- Terraform version **1.5+**
 
-## Technologies Used
-Amazon Web Services (EC2, ASG, ALB, CloudWatch, EventBridge, Lambda, IAM), Terraform, and Python.
+### Deploy Infrastructure
 
-## Use Case
-This project demonstrates real-world cloud resilience concepts and is suitable for learning, portfolio demonstration, and DevOps or Cloud Engineering interviews.
+    cd terraform
+    terraform init
+    terraform apply
 
-## Author
-Aditya Amlapure
+Confirm resource creation when prompted.
 
+---
+
+## 🧪 Testing the Self-Healing Mechanism
+
+To test the self-healing behavior:
+
+1. Manually terminate an EC2 instance in the Auto Scaling Group
+2. CloudWatch detects the unhealthy state
+3. Lambda executes remediation logic
+4. ASG restores the desired capacity automatically
+
+Lambda logs can be viewed in CloudWatch under:
+
+    /aws/lambda/self-healing-handler
+
+---
+
+## 🧠 Design Considerations
+
+- Native ASG recovery provides fast instance replacement
+- Lambda-based remediation acts as a **safety net**
+- Multiple layers of resilience mirror **real production systems**
+- Healing logic is idempotent and safe to re-run
+
+---
+
+## 🧰 Technologies Used
+
+- Amazon EC2
+- Auto Scaling Group (ASG)
+- Application Load Balancer (ALB)
+- Amazon CloudWatch
+- Amazon EventBridge
+- AWS Lambda (Python)
+- AWS IAM
+- Terraform (IaC)
+
+---
+
+## 🎯 Use Case
+
+This project demonstrates **real-world cloud resilience engineering** and is suitable for:
+
+- DevOps portfolios
+- Cloud engineering interviews
+- Learning event-driven automation
+- Understanding self-healing systems
+
+---
+
+## 👤 Author
+
+**Aditya Amlapure**
